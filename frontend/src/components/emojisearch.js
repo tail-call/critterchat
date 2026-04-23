@@ -1,5 +1,6 @@
 import $ from "jquery";
 import { findElement } from "../utils.js"
+import { InputState } from "../inputstate.js";
 
 function getCursorStart(element) {
     var el = $(element).get(0);
@@ -21,14 +22,87 @@ function getCursorEnd(element) {
 
 window.EmojiSearch_lastCategory = "";
 
-export class EmojiSearch {
+class HoveringWindow {
+    /** @type {JQuery<HTMLElement>} */
+    _container;
+
+    /** @type {InputState} */
+    state;
+
+    constructor() {
+        this.displayed = false;
+    }
+
+    _show() {
+        if (!this._container) {
+            return;
+        }
+
+        // First, close any other search elements.
+        this.state.setState("empty");
+
+        // Construct element
+        this.displayed = true;
+        this._container.show();
+
+        // Position ourselves!
+        const offset = $(this.control).offset();
+        var width = $(this.control).outerWidth() - 2;
+        const height = this._container.height();
+        var left = offset.left;
+        var start = offset.top - (height + 2);
+
+        const minWidth = this.minWidth;
+        const minPadding = this.minPadding;
+        if (this.callback && (width < minWidth)) {
+            // We're popping over a hovering window, don't be too small.
+            const delta = minWidth - width;
+
+            width += delta;
+            left -= delta;
+        }
+
+        if (this.callback && start < minPadding) {
+            // We're popping over a hovering window and the top is cut off.
+            start = offset.top + $(this.control).outerHeight();
+        }
+
+        if (this.callback && left < minPadding) {
+            // We're popping over a hovering window and the left is cut off.
+            left += (minPadding - left);
+        }
+
+        this._container.offset({top: start, left: left});
+        this._container.width(width);
+
+    }
+
+    get minWidth() {
+        return 250;
+    }
+
+    get minPadding() {
+        return 5;
+    }
+}
+
+/**
+ * @extends {HoveringWindow}
+ */
+export class EmojiSearch extends HoveringWindow {
+    /**
+     * @param {InputState} state 
+     * @param {*} button 
+     * @param {*} control 
+     * @param {*} items 
+     * @param {*} callback 
+     */
     constructor(state, button, control, items, callback) {
+        super();
         this.state = state;
         this.button = button;
         this.control = control;
         this.callback = callback;
-
-        this.displayed = false;
 
         // Create our picker, hide it.
         this._container = $('<div class="emojisearch"></div>')
@@ -281,49 +355,10 @@ export class EmojiSearch {
     }
 
     _show() {
-        if (!this._container) {
-            return;
-        }
-
-        // First, close any other search elements.
-        this.state.setState("empty");
-
-        // Construct element
-        this.displayed = true;
-        this._container.show();
+        super._show();
 
         // Broadcast that we're open.
         this.state.setState("search");
-
-        // Position ourselves!
-        const offset = $(this.control).offset();
-        var width = $(this.control).outerWidth() - 2;
-        const height = this._container.height();
-        var left = offset.left;
-        var start = offset.top - (height + 2);
-
-        const minWidth = 250;
-        const minPadding = 5;
-        if (this.callback && (width < minWidth)) {
-            // We're popping over a custom reaction picker, don't be too small.
-            const delta = minWidth - width;
-
-            width += delta;
-            left -= delta;
-        }
-
-        if (this.callback && start < minPadding) {
-            // We're popping over a reaction picker and the top is cut off.
-            start = offset.top + $(this.control).outerHeight();
-        }
-
-        if (this.callback && left < minPadding) {
-            // We're popping over a reaction picker and the left is cut off.
-            left += (minPadding - left);
-        }
-
-        this._container.offset({top: start, left: left});
-        this._container.width(width);
 
         // Make sure the last chosen emoji category globally is selected.
         this._container.find("div.emojisearch-category").each((i, elem) => {
