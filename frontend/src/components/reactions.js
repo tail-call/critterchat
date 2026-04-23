@@ -112,6 +112,7 @@ class Reactions {
         // Create a container.
         const container = $('<div class="reactions-popover"></div>');
         const controls = $('<div class="reactions-controls"></div>').appendTo(container);
+        const menuButtonContainer = $('<div class="reactions-controls"></div>').appendTo(container);
 
         // Add the defaults.
         window.reactionsdefaults.forEach((value) => {
@@ -124,6 +125,11 @@ class Reactions {
 
             $('<div class="separator" />').appendTo(controls);
         });
+
+        // Add the [⋯] menu button.
+        $('<button class="reaction"></button>')
+            .html("⋯")
+            .appendTo(menuButtonContainer)
 
         // Add the custom selector.
         const search = $('<button class="custom-reaction"></button>').appendTo(controls);
