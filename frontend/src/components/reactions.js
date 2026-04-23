@@ -1,6 +1,7 @@
 import $ from "jquery";
 import { escapeHtml, findElement } from "../utils.js";
 import { EmojiSearch } from "../components/emojisearch.js";
+import { HoveringWindow } from "./hoveringwindow.js";
 
 const searchOptions = {
     attributes: function( _icon, _variant ) {
@@ -28,6 +29,17 @@ class Reactions {
                 this.callback(this.id, 'reaction', value);
             }
         });
+
+        this.contextMenu = new HoveringWindow(
+            this.inputState,
+            $('<div />'),
+            $('<div />'),
+            "emojisearch"
+        );
+
+        // XXX: illegal
+        $('<button>edit</button>').appendTo(this.contextMenu._container);
+        $('<button>delete</button>').appendTo(this.contextMenu._container);
 
         $( document ).on( 'click', 'div.reactions-popover button.reaction', (event) => {
             event.preventDefault();
@@ -127,9 +139,14 @@ class Reactions {
         });
 
         // Add the [⋯] menu button.
-        $('<button class="reaction"></button>')
+        const menuButton = $('<button class="reaction"></button>')
             .html("⋯")
-            .appendTo(menuButtonContainer)
+            .appendTo(menuButtonContainer);
+
+        menuButton.click(() => {
+            console.log("hi");
+            this.contextMenu.show(menuButton, menuButton);
+        })
 
         // Add the custom selector.
         const search = $('<button class="custom-reaction"></button>').appendTo(controls);
