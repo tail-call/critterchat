@@ -22,15 +22,37 @@ function getCursorEnd(element) {
 
 window.EmojiSearch_lastCategory = "";
 
+/**
+ * I am a hovering window that can be attached to a button or control.
+ */
 class HoveringWindow {
     /** @type {JQuery<HTMLElement>} */
     _container;
 
+    /** @type {JQuery<HTMLElement>} */
+    button;
+
     /** @type {InputState} */
     state;
 
-    constructor() {
+    /**
+     * @param {InputState} state 
+     * @param {JQuery<HTMLElement>} button 
+     * @param {JQuery<HTMLElement>} control 
+     * @param {string} className 
+     */
+    constructor(state, button, control, className) {
+        this.state = state;
+        this.button = button;
+        this.control = control;
+
         this.displayed = false;
+
+        // Create container, hide it.
+        this._container = $('<div ></div>', {
+            class: `hovering-window ${className}`,
+            style: "display:none;",
+        }).appendTo('body');
     }
 
     _show() {
@@ -75,6 +97,7 @@ class HoveringWindow {
         this._container.offset({top: start, left: left});
         this._container.width(width);
 
+        this.didShow();
     }
 
     get minWidth() {
@@ -111,6 +134,46 @@ class HoveringWindow {
 
         // Hide our top level.
         this._container.hide();
+
+        this.didHide();
+    }
+
+    // Provide a way to reparent this control.
+    reparent( newbutton_or_control, newcontrol ) {
+        $(this.button).removeClass('hooked');
+        $(this.button).off();
+
+        if ( newcontrol ) {
+            this.button = newbutton_or_control;
+            this.control = newcontrol;
+        } else {
+            this.control = newbutton_or_control;
+        }
+
+        if (this.displayed) {
+            this._show();
+        }
+
+        $(this.button).on('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+            if (this.displayed) {
+                this.hide();
+            } else {
+                this._show();
+            }
+        });
+        $(this.button).addClass('hooked');
+    }
+
+    didHide() {
+        // For subclasses
+    }
+
+    didShow() {
+        // For subclasses
     }
 }
 
@@ -122,21 +185,14 @@ export class EmojiSearch extends HoveringWindow {
      * @param {InputState} state 
      * @param {JQuery<HTMLElement>} button 
      * @param {JQuery<HTMLElement>} control 
-     * @param {*} items 
-     * @param {*} callback 
+     * @param {object[]} items 
+     * @param {Function} callback 
      */
     constructor(state, button, control, items, callback) {
-        super();
+        super(state, button, control, "emojisearch");
 
-        this.state = state;
-        this.button = button;
-        this.control = control;
         this.callback = callback;
 
-        // Create our picker, hide it.
-        this._container = $('<div class="emojisearch"></div>')
-            .attr("style", "display:none;")
-            .appendTo('body');
         const inner = $('<div class="emojisearch-container"></div>').appendTo(this._container);
         $('<div class="emojisearch-typeahead"></div>')
             .html('<input type="text" id="emojisearch-text" placeholder="search" />')
@@ -383,9 +439,7 @@ export class EmojiSearch extends HoveringWindow {
         });
     }
 
-    _show() {
-        super._show();
-
+    didShow() {
         // Broadcast that we're open.
         this.state.setState("search");
 
@@ -407,9 +461,7 @@ export class EmojiSearch extends HoveringWindow {
         }
     }
 
-    hide() {
-        super.hide();
-
+    didHide() {
         // Broadcast that we're closed.
         if(this.state.current == "search") {
             this.state.setState("empty");
@@ -447,42 +499,12 @@ export class EmojiSearch extends HoveringWindow {
 
     // Provide a way to kill this control.
     destroy() {
-        this._hide();
+        this.hide();
 
         if (this._container) {
             this._container.remove();
             this._container = undefined;
         }
-    }
-
-    // Provide a way to reparent this control.
-    reparent( newbutton_or_control, newcontrol ) {
-        $(this.button).removeClass('hooked');
-        $(this.button).off();
-
-        if ( newcontrol ) {
-            this.button = newbutton_or_control;
-            this.control = newcontrol;
-        } else {
-            this.control = newbutton_or_control;
-        }
-
-        if (this.displayed) {
-            this._show();
-        }
-
-        $(this.button).on('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-
-            if (this.displayed) {
-                this.hide();
-            } else {
-                this._show();
-            }
-        });
-        $(this.button).addClass('hooked');
     }
 
     // Provide a way to ask if a button is already bound to this control.
