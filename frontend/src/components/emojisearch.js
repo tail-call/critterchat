@@ -84,6 +84,34 @@ class HoveringWindow {
     get minPadding() {
         return 5;
     }
+
+    /**
+     * Provides a way to programatically pop the window up attached to a control.
+     * @param {*} newbutton_or_control 
+     * @param {*} newcontrol 
+     */
+    show( newbutton_or_control, newcontrol ) {
+        if (this.displayed) {
+            this.hide();
+        }
+
+        if (newbutton_or_control || newcontrol) {
+            this.reparent( newbutton_or_control, newcontrol );
+        }
+
+        this._show();
+    }
+
+    hide() {
+        if (!this._container || !this.displayed) {
+            return;
+        }
+
+        this.displayed = false;
+
+        // Hide our top level.
+        this._container.hide();
+    }
 }
 
 /**
@@ -92,13 +120,14 @@ class HoveringWindow {
 export class EmojiSearch extends HoveringWindow {
     /**
      * @param {InputState} state 
-     * @param {*} button 
-     * @param {*} control 
+     * @param {JQuery<HTMLElement>} button 
+     * @param {JQuery<HTMLElement>} control 
      * @param {*} items 
      * @param {*} callback 
      */
     constructor(state, button, control, items, callback) {
         super();
+
         this.state = state;
         this.button = button;
         this.control = control;
@@ -379,19 +408,12 @@ export class EmojiSearch extends HoveringWindow {
     }
 
     hide() {
-        if (!this._container || !this.displayed) {
-            return;
-        }
-
-        this.displayed = false;
+        super.hide();
 
         // Broadcast that we're closed.
         if(this.state.current == "search") {
             this.state.setState("empty");
         }
-
-        // Hide our top level.
-        this._container.hide();
 
         // Also make sure search is cleared.
         var searchVal = this._container.find("#emojisearch-text").val();
@@ -461,19 +483,6 @@ export class EmojiSearch extends HoveringWindow {
             }
         });
         $(this.button).addClass('hooked');
-    }
-
-    // Provide a way to programatically pop this up attached to a control.
-    show( newbutton_or_control, newcontrol ) {
-        if (this.displayed) {
-            this.hide();
-        }
-
-        if (newbutton_or_control || newcontrol) {
-            this.reparent( newbutton_or_control, newcontrol );
-        }
-
-        this._show();
     }
 
     // Provide a way to ask if a button is already bound to this control.
