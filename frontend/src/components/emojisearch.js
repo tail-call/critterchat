@@ -168,6 +168,13 @@ class HoveringWindow {
         $(this.button).addClass('hooked');
     }
 
+    /** 
+     * Provides a way to ask if a button is already bound to this control.
+     */
+    bound( button ) {
+        return $(button).hasClass('hooked');
+    }
+
     didHide() {
         // For subclasses
     }
@@ -505,10 +512,5 @@ export class EmojiSearch extends HoveringWindow {
             this._container.remove();
             this._container = undefined;
         }
-    }
-
-    // Provide a way to ask if a button is already bound to this control.
-    bound( button ) {
-        return $(button).hasClass('hooked');
     }
 }
