@@ -117,7 +117,9 @@ export class HoveringWindow {
         this.didHide();
     }
 
-    // Provide a way to reparent this control.
+    /**
+     * Provides a way to reparent this control.
+     */ 
     reparent( newbutton_or_control, newcontrol ) {
         $(this.button).removeClass('hooked');
         $(this.button).off();
