@@ -2,6 +2,7 @@ import $ from "jquery";
 import { escapeHtml, findElement } from "../utils.js";
 import { EmojiSearch } from "../components/emojisearch.js";
 import { HoveringWindow } from "./hoveringwindow.js";
+import { EventHandler } from "./event.js";
 
 const searchOptions = {
     attributes: function( _icon, _variant ) {
@@ -13,13 +14,23 @@ const searchOptions = {
     },
 };
 
+/**
+ * I display a list of recent reactions and controls for popping up
+ * an `EmojiSearch` and a context menu for messages in the chat.
+ */
 class Reactions {
     constructor( eventBus, screenState, inputState, callback ) {
+        /** @type {EventHandler} */
         this.eventBus = eventBus;
         this.screenState = screenState;
         this.inputState = inputState;
         this.callback = callback;
         this.hovering = false;
+
+        /**
+         * ID of a message I'm attached to
+         * @type {string | undefined}
+         */
         this.id = undefined;
 
         this.emojiSearchOptions = this._getEmojiSearchOptions();
@@ -30,6 +41,7 @@ class Reactions {
             }
         });
 
+        // XXX: I want this to be a MessageContextMenu or something
         this.contextMenu = new HoveringWindow(
             this.inputState,
             $('<div />'),
@@ -38,8 +50,13 @@ class Reactions {
         );
 
         // XXX: illegal
-        $('<button>edit</button>').appendTo(this.contextMenu._container);
-        $('<button>delete</button>').appendTo(this.contextMenu._container);
+        $('<button>edit</button>')
+            .appendTo(this.contextMenu._container);
+        $('<button>delete</button>')
+            .click(() => {
+                this.eventBus.emit('deletemessage', { id: this.id });
+            })
+            .appendTo(this.contextMenu._container);
 
         $( document ).on( 'click', 'div.reactions-popover button.reaction', (event) => {
             event.preventDefault();
@@ -144,7 +161,7 @@ class Reactions {
             .appendTo(menuButtonContainer);
 
         menuButton.click(() => {
-            console.log("hi");
+            console.log("Menu button clicked");
             this.contextMenu.show(menuButton, menuButton);
         })
 

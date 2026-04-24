@@ -790,4 +790,8 @@ export function manager(socket) {
         // Inform the server of the last action the client read for a given room.
         socket.emit('lastaction', value);
     });
+
+    eventBus.on('deletemessage', (...data) => {
+        console.log("Before this works, I have to fix the Reactions position", ...data);
+    });
 }
