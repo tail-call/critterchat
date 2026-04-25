@@ -357,6 +357,14 @@ The `dismissinvite` packet is sent from the client when the client wishes to dis
 
 No response packet is sent for this request, but an unsolicited `invites` response packet will be sent to all clients that the user is signed in under with the updated invite that has been marked as seen. Note that other users cannot see if the current user has dismissed an invite.
 
+### deletemessage
+
+> XXX tiesha was here
+
+is sent when user wants to delete a message
+
+i suppose it should be different from `mod deletemessage`? as in, if a mod deletes a message, it's quite different from a user deleting a message; like if a mod deletes their own message through the usual ui it's not a mod action at all but if it's someone else's message then it is a mod action, i think should be treated differentlly
+
 ### admin
 
 The `admin` packet is sent from the client when the client requests the server to perform an administrative action on behalf of the currently logged-in user. Note that the current user must be an administrator to call this command. If not, this command will refuse to perform the action requested. It expects a request JSON that contains an `action` attribute representing the action to be taken, and various other attributes depending on the action. The server will not respond with any specific response to the packet, but will send a socket.io acknowledgement back in the case of either failure or success. A client can use this to refresh information about a user that has had action taken on it by the command. Note also that in many cases, this will also return a `flash` unsolicited response packet that the client can use to display to the user. The various actions and their additional properties are documented below.
