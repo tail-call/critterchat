@@ -1,3 +1,5 @@
+/** @typedef {"search" | "empty" | "chat" | "info" | "menu" | "typeahead"} InputStateValue */
+
 export function InputState() {
     this.current = "empty";
     this.callbacks = [];
@@ -6,6 +8,10 @@ export function InputState() {
         this.callbacks.push(callback);
     }
 
+    /**
+     * Transition into a new state, execute state change callbacks.
+     * @param {InputStateValue} newState 
+     */
     this.setState = function(newState) {
         const changed = this.current != newState;
         this.current = newState;

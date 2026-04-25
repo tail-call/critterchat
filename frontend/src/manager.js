@@ -791,7 +791,14 @@ export function manager(socket) {
         socket.emit('lastaction', value);
     });
 
-    eventBus.on('deletemessage', (...data) => {
-        console.log("Before this works, I have to fix the Reactions position", ...data);
+    eventBus.on('deletemessage', (value) => {
+        socket.emit('deletemessage', value);
     });
+
+    // XXX im a munkey
+    socket.emit2 = socket.emit;
+    socket.emit = function (...xs) {
+        console.log("socket.emit", ...xs);
+        return socket.emit2(...xs);
+    };
 }

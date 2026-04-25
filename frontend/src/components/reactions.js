@@ -3,6 +3,7 @@ import { escapeHtml, findElement } from "../utils.js";
 import { EmojiSearch } from "../components/emojisearch.js";
 import { HoveringWindow } from "./hoveringwindow.js";
 import { EventHandler } from "./event.js";
+import { InputState } from "../inputstate.js";
 
 const searchOptions = {
     attributes: function( _icon, _variant ) {
@@ -23,6 +24,7 @@ class Reactions {
         /** @type {EventHandler} */
         this.eventBus = eventBus;
         this.screenState = screenState;
+        /** @type {InputState} */
         this.inputState = inputState;
         this.callback = callback;
         this.hovering = false;
@@ -48,6 +50,14 @@ class Reactions {
             $('<div />'),
             "emojisearch"
         );
+
+        // XXX: very illegal
+        this.contextMenu.didShow = () => {
+            this.inputState.setState("search");
+        };
+        this.contextMenu.didHide = () => {
+            this.inputState.setState("empty");
+        };
 
         // XXX: illegal
         $('<button>edit</button>')
@@ -161,9 +171,10 @@ class Reactions {
             .appendTo(menuButtonContainer);
 
         menuButton.click(() => {
-            console.log("Menu button clicked");
+            // XXX
+            console.log("Menu button clicked. Click it twice more to make menu stop moving (BUG)");
             this.contextMenu.show(menuButton, menuButton);
-        })
+        });
 
         // Add the custom selector.
         const search = $('<button class="custom-reaction"></button>').appendTo(controls);
@@ -180,8 +191,9 @@ class Reactions {
         const height = container.outerHeight();
         container.css('top', '-' + (height - 5) + 'px');
 
-        // Hook the search button to the emoji popover.
+        // Hook the search button and the context menu to the emoji popover.
         this.search.reparent(controls);
+        this.contextMenu.reparent(controls);
 
         // Stop the reactions box from disappearing when we're hovering over it
         // in any capacity.
@@ -212,6 +224,7 @@ class Reactions {
         $("div.reactions-popover").off();
         $("div.reactions-popover").remove();
         this.search.hide();
+        this.contextMenu.hide();
     }
 
     hide( suppressTracking ) {
